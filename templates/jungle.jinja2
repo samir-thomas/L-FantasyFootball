@@ -1,0 +1,12 @@
+{% extends "base.jinja2" %}
+{% block title %}{{ title2 }}{% endblock %}
+{% block content %}
+    <p>{{ player_details.first_name }}</p>
+    <p>{{ player_details.surname }}</p>
+    <p>{{ player_details.email }}</p>
+    <p>{{ player_details.username }}</p>
+{#    {% for u in player_details %}#}
+{#    <li>{{ u.username }}</li>#}
+{#    {% endfor %}#}
+
+{% endblock %}
