@@ -1,0 +1,39 @@
+{% extends "base.jinja2" %}
+{% block title %}{{ title2 }}{% endblock %}
+{% block content %}
+    <h1>Welcome {{ player_details.first_name }}</h1>
+    <h3>My squad</h3>
+    {% if squad %}
+        <h4>Goalkeepers</h4>
+        <div>
+            {% for gk in squad[0].Goalkeepers %}
+            <li>{{ gk }}</li>
+            {% endfor %}
+        </div>
+
+        <h4>Defenders</h4>
+        <div>
+            {% for def in squad[0].Defenders %}
+            <li>{{ def }}</li>
+            {% endfor %}
+        </div>
+
+        <h4>Midfield</h4>
+        <div>
+            {% for mid in squad[0].Midfielders %}
+            <li>{{ mid }}</li>
+            {% endfor %}
+        </div>
+
+        <h4>Forwards</h4>
+        <div>
+            {% for fwd in squad[0].Forwards %}
+            <li>{{ fwd }}</li>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div>
+            <p>No squads detected, please create a new squad</p>
+        </div>
+    {% endif %}
+{% endblock %}

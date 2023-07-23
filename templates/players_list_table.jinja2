@@ -1,0 +1,27 @@
+{% extends "base.jinja2" %}
+{% block title %}{{ title2 }}{% endblock %}
+{% block content %}
+    <h1>Player database</h1>
+    <table>
+          <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Club</th>
+            <th>Cost</th>
+            <th>Total points</th>
+            <th>Home/Away</th>
+          </tr>
+          <tr>
+        {% for player in players_list %}
+             <tr>
+                <td>{{ player.name }}</td>
+                <td>{{ player.position }}</td>
+                <td>{{ player.club }}</td>
+                <td>{{ player.cost }}</td>
+                <td>{{ player.total_points }}</td>
+                <td>{{ player.home_away }}</td>
+             </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
