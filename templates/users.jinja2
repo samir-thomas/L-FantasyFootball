@@ -4,7 +4,7 @@
     <p>Registered Users</p>
     {% for u in registered_users %}
         <li>
-            <a href="{{ url_for('welcome_page', id=registered_users.index(u)) }}"> {{ u.username }} </a>
+            <a href="{{ url_for('welcome_page', player_id=registered_users.index(u)) }}"> {{ u.username }} </a>
         </li>
     {% endfor %}
 {% endblock %}

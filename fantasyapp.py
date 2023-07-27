@@ -1,13 +1,11 @@
-from starlette.applications import Starlette
-from starlette.requests import Request
-from starlette.routing import Route, Mount
-from starlette.templating import Jinja2Templates
-from starlette.staticfiles import StaticFiles
-from starlette.responses import JSONResponse, Response, PlainTextResponse
 from players import crate_player_database
-
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
 import typing
+
+app = FastAPI()
 
 obj = [
     {
@@ -41,7 +39,7 @@ my_fp_squad = [
             "Iwobi",
             "Maddison",
             "Mac Allister",
-            "Foder",
+            "Foden",
         },
         "Forwards": {
             "Watkins",
@@ -60,14 +58,16 @@ templates = Jinja2Templates(
     directory='templates', context_processors=[app_context], autoescape=False, auto_reload=True)
 
 
-async def homepage(request):
+@app.get("/")
+async def homepage(request: Request):
     context = {
         'request': request,
         "users": obj}
     return templates.TemplateResponse('homepage.jinja2', context)
 
 
-async def get_all_users(request):
+@app.get("/users")
+async def get_all_users(request: Request):
     context = {
         'request': request,
         "registered_users": obj
@@ -75,8 +75,8 @@ async def get_all_users(request):
     return templates.TemplateResponse('users.jinja2', context)
 
 
-async def get_user_details_page(request):
-    user_id = request.path_params['id']
+@app.get("/users/{user_id}", response_class=HTMLResponse)
+async def get_user_details_page(request: Request, user_id: int):
     context = {
         'request': request,
         "player_details": obj[user_id]
@@ -84,11 +84,25 @@ async def get_user_details_page(request):
     return templates.TemplateResponse('user_details.jinja2', context)
 
 
-async def api_get_all_users(request):
-    return JSONResponse(obj)
+@app.get("/welcome_page/{player_id}", response_class=HTMLResponse)
+def welcome_page(request: Request, player_id: int):
+    # user_id = request.path_params['id']
+    context = {
+        'request': request,
+        'player_details': obj[player_id],
+        'squad': [my_squad for my_squad
+                  in my_fp_squad if my_squad.get("owner") == obj[player_id].get("username")]
+    }
+    return templates.TemplateResponse('welcome.jinja2', context)
 
 
-async def api_create_player(request):
+@app.get("/api/users/all")
+async def api_get_all_users():
+    return obj
+
+
+@app.get("/api/users/new")
+async def api_create_player():
     player = {
         "first_name": "new_firstname",
         "surname": "new_surname",
@@ -96,66 +110,40 @@ async def api_create_player(request):
         "username": "new_player_username"
     }
     obj.append(player)
-    return JSONResponse(obj)
+    return obj
 
 
-async def api_edit_player(request):
-    user_id = request.path_params['id']
+@app.get("/api/users/edit/{user_id}")
+async def api_edit_player(user_id: int):
     obj[user_id] = {
         "first_name": "edited_firstname",
         "surname": "edited_surname",
         "email": "edited_player@email.com",
         "username": "edited_player_username"
     }
-    return JSONResponse(obj)
+    return obj
 
 
-async def api_remove_user(request):
-    user_id = request.path_params['id']
+@app.get("/api/users/remove/{user_id}")
+async def api_remove_user(user_id: int):
     obj.remove(obj[user_id])
-    return JSONResponse(obj)
+    return obj
 
 
-async def api_get_squad(request):
-    return JSONResponse(my_fp_squad)
+@app.get("/api/squads")
+async def api_get_squad():
+    return my_fp_squad
 
 
-async def api_get_player_details(request):
-    return JSONResponse(crate_player_database())
+@app.get("/api/players_list")
+async def api_get_player_details():
+    return crate_player_database()
 
 
-def welcome_page(request):
-    user_id = request.path_params['id']
-    context = {
-        'request': request,
-        'player_details': obj[user_id],
-        'squad': [my_squad for my_squad
-                  in my_fp_squad if my_squad.get("owner") == obj[user_id].get("username")]
-    }
-    return templates.TemplateResponse('welcome.jinja2', context)
-
-
-def get_players_db(request):
+@app.get("/players_database")
+def get_players_db(request: Request):
     context = {
         'request': request,
         'players_list': crate_player_database()
     }
     return templates.TemplateResponse('players_list_table.jinja2', context)
-
-
-routes = [
-    Route('/', endpoint=homepage),
-    Route('/welcome/{id:int}', welcome_page),
-    Route('/users', get_all_users),
-    Route('/users/{id:int}', get_user_details_page),
-    Route('/players_database', get_players_db),
-    Route('/api/users/all', api_get_all_users),
-    Route('/api/users/new', api_create_player),
-    Route('/api/users/edit/{id:int}', api_edit_player),
-    Route('/api/users/remove/{id:int}', api_remove_user),
-    Route('/api/squads', api_get_squad),
-    Route('/api/players_list', api_get_player_details),
-    Mount('/static', StaticFiles(directory='static'), name='static')
-]
-
-app = Starlette(debug=True, routes=routes)
