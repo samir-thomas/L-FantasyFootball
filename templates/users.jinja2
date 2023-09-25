@@ -1,10 +1,12 @@
 {% extends "base.jinja2" %}
 {% block title %}{{ title2 }}{% endblock %}
 {% block content %}
-    <p>Registered Users</p>
+    <h2>Load all players in the database</h2>
+    <a href="{{ url_for('get_players_db') }}">Load all players</a>
+    <h2>Registered Users</h2>
     {% for u in registered_users %}
         <li>
-            <a href="{{ url_for('welcome_page', player_id=registered_users.index(u)) }}"> {{ u.username }} </a>
+            <a href="{{ url_for('welcome_page_v3', user_id=registered_users.index(u) + 1) }}"> {{ u.email }} </a>
         </li>
     {% endfor %}
 {% endblock %}

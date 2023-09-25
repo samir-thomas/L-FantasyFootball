@@ -3,37 +3,86 @@
 {% block content %}
     <h1>Welcome {{ player_details.name }}</h1>
     <h3>My squad</h3>
-    {% if squad %}
+{#    {% if squad %}#}
         <h4>Goalkeepers</h4>
         <div>
-            {% for gk in squad[0].Goalkeepers %}
-            <li>{{ gk }}</li>
+            {% for player_selection in range(allocation["GKP"]) %}
+                <label for="gkp">select player
+                    <select name="gkp">
+                        {% for player in positions["GKP"]  %}
+                         <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <br>
             {% endfor %}
         </div>
 
-        <h4>Defenders</h4>
+    <h4>Defenders</h4>
         <div>
-            {% for def in squad[0].Defenders %}
-            <li>{{ def }}</li>
+            {% for player_selection in range(allocation["DEF"]) %}
+                <label for="def">select player
+                    <select name="def">
+                        {% for player in positions["DEF"]  %}
+                         <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <br>
             {% endfor %}
         </div>
 
-        <h4>Midfield</h4>
+    <h4>Midfielders</h4>
         <div>
-            {% for mid in squad[0].Midfielders %}
-            <li>{{ mid }}</li>
+            {% for player_selection in range(allocation["MID"]) %}
+                <label for="mid">select player
+                    <select name="mid">
+                        {% for player in positions["MID"]  %}
+                         <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <br>
             {% endfor %}
         </div>
+
 
         <h4>Forwards</h4>
         <div>
-            {% for fwd in squad[0].Forwards %}
-            <li>{{ fwd }}</li>
+            {% for player_selection in range(allocation["FWD"]) %}
+                <label for="fwd">select player
+                    <select name="mid">
+                        {% for player in positions["FWD"]  %}
+                         <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <br>
             {% endfor %}
         </div>
-    {% else %}
-        <div>
-            <p>No squads detected, please create a new squad</p>
-        </div>
-    {% endif %}
+{#        <h4>Defenders</h4>#}
+{#        <div>#}
+{#            {% for def in squad[0].Defenders %}#}
+{#            <li>{{ def }}</li>#}
+{#            {% endfor %}#}
+{#        </div>#}
+{##}
+{#        <h4>Midfield</h4>#}
+{#        <div>#}
+{#            {% for mid in squad[0].Midfielders %}#}
+{#            <li>{{ mid }}</li>#}
+{#            {% endfor %}#}
+{#        </div>#}
+{##}
+{#        <h4>Forwards</h4>#}
+{#        <div>#}
+{#            {% for fwd in squad[0].Forwards %}#}
+{#            <li>{{ fwd }}</li>#}
+{#            {% endfor %}#}
+{#        </div>#}
+{#    {% else %}#}
+{#        <div>#}
+{#            <p>No squads detected, please create a new squad</p>#}
+{#        </div>#}
+{#    {% endif %}#}
 {% endblock %}

@@ -4,6 +4,7 @@
     <h1>Player database</h1>
     <table>
           <tr>
+            <th>Index</th>
             <th>Name</th>
             <th>Position</th>
             <th>Club</th>
@@ -14,6 +15,7 @@
           <tr>
         {% for player in players_list %}
              <tr>
+                <td>{{ player.id }}</td>
                 <td>{{ player.name }}</td>
                 <td>{{ player.position }}</td>
                 <td>{{ player.club }}</td>
