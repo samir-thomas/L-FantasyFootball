@@ -4,8 +4,9 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from data.data import premierleague_club_list
+# from data.data import premierleague_club_list, create_list_schema
 from sql_app import models
+from sql_app.crud import get_league_details
 from sql_app.database import engine
 from squads.squad_validators import *
 from squads.new_squad_1 import new_squad, assign_random_players_by_position
@@ -114,13 +115,19 @@ def get_players_db(request: Request, db: Session = Depends(get_db), skip: int = 
     return templates.TemplateResponse('players_list_table.jinja2', context)
 
 
-@app.get("/api/teams/premierleague/create", response_model=list)
-def create_premierleague_teams(db: Session = Depends(get_db)):
+@app.post("/api/teams/league/create", response_model=list[schemas.ClubCreate])
+def create_premierleague_teams(clubs: list[schemas.ClubCreate], league_name: str, db: Session = Depends(get_db)):
     added_clubs = []
-    for club in premierleague_club_list:
-        db_teams = crud.get_club_by_name_and_league(db, name=club, league='premierleague')
-        if not db_teams:
-            crud.insert_club(db=db, club=club, league='premierleague')
+    # league_name = 'premierleague'
+    league_details = get_league_details(db=db, league=league_name)
+    for club in clubs:
+        this_club = crud.get_club_by_name_and_league(db, name=club.name, league=league_name)
+        if not this_club:
+            crud.insert_club(db=db, club=club, league_id=league_details.id)
             added_clubs.append(club)
-
     return added_clubs
+
+
+@app.post("/api/league/create", response_model=schemas.League)
+def create_league(league: schemas.League, db: Session = Depends(get_db)):
+    return crud.add_league(db=db, league=league)

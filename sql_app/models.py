@@ -57,5 +57,17 @@ class Club(Base):
 
     team_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    league = Column(String, index=True)
+    # league = Column(String, index=True)
+    league_id = Column(Integer, ForeignKey("league.id"))
 
+    league = relationship("League", back_populates="club")
+
+
+class League(Base):
+    __tablename__ = "league"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    league_size = Column(Integer)
+
+    club = relationship("Club", back_populates="league")

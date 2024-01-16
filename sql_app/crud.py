@@ -65,7 +65,24 @@ def generate_random_players(db: Session, number_of_players):
 
 
 def get_club_by_name_and_league(db: Session, name: str, league: str):
-    return db.query(models.Club).filter(models.Club.name == name and models.Club.league == league).first()
+    return db.query(models.Club, models.League)\
+        .join(models.League)\
+        .filter(models.Club.name == name and models.League.name == league).first()
+
+
+def get_league_details(db: Session, league: str):
+    league_details = db.query(models.League).filter(models.League.name == league).first()
+    return league_details
+
+
+def add_league(db: Session, league: schemas.League):
+    db_league = models.League(
+        **league.model_dump()
+    )
+    db.add(db_league)
+    db.commit()
+    db.refresh(db_league)
+    return db_league
 
 
 def get_random_club(db: Session, skip: int = 0, limit: int = 20):
@@ -74,9 +91,9 @@ def get_random_club(db: Session, skip: int = 0, limit: int = 20):
     return random_club.name
 
 
-def insert_club(db: Session, club, league):
-    db_club = models.Club(name=club,
-                          league=league)
+def insert_club(db: Session, club: schemas.ClubCreate, league_id):
+    db_club = models.Club(name=club.name,
+                          league_id=league_id)
     db.add(db_club)
     db.commit()
     db.refresh(db_club)
@@ -84,8 +101,6 @@ def insert_club(db: Session, club, league):
 
 
 def get_squad_by_user_id(db: Session, user_id: int):
-    # user = get_user_by_email(db, email=email)
-    # mydb = db.query(models.Squad).filter(models.Squad.user_id == user.id).first()
     return db.query(models.Squad).filter(models.Squad.user_id == user_id).all()
 
 

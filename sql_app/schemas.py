@@ -60,5 +60,26 @@ class Squad(SquadBase):
         orm_mode = True
 
 
+class Club(BaseModel):
+    name: str
 
+
+    class Config:
+        orm_mode = True
+
+
+class ClubBase(Club):
+    pass
+
+
+class ClubCreate(ClubBase):
+    name: str
+
+
+class League(BaseModel):
+    name: str
+    league_size: int
+
+    class Config:
+        orm_mode = True
 

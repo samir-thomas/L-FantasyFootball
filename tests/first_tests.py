@@ -1,8 +1,12 @@
+from fastapi import Depends
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 from fantasyappV2 import app
-from sql_app import models
+from sql_app import models, crud
+from sql_app.crud import add_league
 from sql_app.database import engine
+from sql_app.db import get_db
 
 client = TestClient(app)
 
@@ -71,9 +75,23 @@ def test_ok():
 
 
 def test_create_premierleague():
-    response = client.get("/api/teams/premierleague/create/")
+    client.post("/api/league/create/", json={
+        "name": "premierleague",
+        "league_size": 20
+    })
+    response = client.post("/api/teams/league/create/", params={
+        "league_name": "premierleague"
+    }, json=[
+        {"name": "Bournemouth"},
+        {"name": "Arsenal"},
+        {"name": "Aston Villa"},
+        {"name": "Brentford"},
+        {"name": "Brighton"},
+        {"name": "Burnley"}
+    ]
+    )
     assert response.status_code == 200
-    assert len(response.json()) == 20
+    assert len(response.json()) == 6
 
 
 def test_drop_db():
