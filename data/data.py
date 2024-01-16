@@ -17,5 +17,7 @@ premierleague_club_list = \
              "Wolves",
              "West Ham",
              "Nottingham Forest",
-             "Sheffield United"]
+             "Sheffield United",
+             "Tottenham Hotspur"
+         ]
 

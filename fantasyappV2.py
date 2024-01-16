@@ -23,6 +23,11 @@ templates = Jinja2Templates(
 models.Base.metadata.create_all(bind=engine)
 
 
+@app.get("/new_horison/")
+async def read_main():
+    return {"msg": "Hello World"}
+
+
 @app.post("/api/create-user/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
@@ -111,12 +116,11 @@ def get_players_db(request: Request, db: Session = Depends(get_db), skip: int = 
 
 @app.get("/api/teams/premierleague/create", response_model=list)
 def create_premierleague_teams(db: Session = Depends(get_db)):
+    added_clubs = []
     for club in premierleague_club_list:
         db_teams = crud.get_club_by_name_and_league(db, name=club, league='premierleague')
-        if db_teams:
-            raise HTTPException(status_code=400, detail=club + " already exists")
+        if not db_teams:
+            crud.insert_club(db=db, club=club, league='premierleague')
+            added_clubs.append(club)
 
-        crud.insert_club(db=db, club=club, league='premierleague')
-
-    return premierleague_club_list
-
+    return added_clubs

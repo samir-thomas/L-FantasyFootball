@@ -58,3 +58,4 @@ class Club(Base):
     team_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     league = Column(String, index=True)
+

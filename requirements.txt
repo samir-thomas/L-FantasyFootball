@@ -3,3 +3,4 @@ Faker~=19.0.0
 fastapi~=0.100.0
 SQLAlchemy~=2.0.19
 pydantic~=2.1.1
+pytest~=7.4.4
