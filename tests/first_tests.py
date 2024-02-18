@@ -22,7 +22,7 @@ def test_create_user():
     assert response.status_code == 200
     assert response.json()["name"] == "new-test-user1000"
     assert response.json()["email"] == "new-test-user1000@email.com"
-    assert response.json()["is_active"]
+    assert response.json()["is_active"] is True
     assert response.json()["squad_name"] == "test squad 2000"
 
 
@@ -54,19 +54,26 @@ def test_create_squads():
     assert response.status_code == 200
     assert response.json()["user_id"] == 1
     assert response.json()["player_id"] == 1
-    assert response.json()["starter"]
-    assert not response.json()["vice_captain"]
-    assert response.json()["captain"]
+    assert response.json()["starter"] is True
+    assert response.json()["vice_captain"] is False
+    assert response.json()["captain"] is True
 
 
 def test_get_users():
+    test_name = "new-test-user1000"
+    client.post("/api/create-user/", json={
+        "name": test_name,
+        "password": "new-test-user1000",
+        "email": "new-test-user-1000@email.com",
+        "squad_name": "test new squad 2000"
+    })
     response = client.get("/api/get_users", params={
         "limit": 100,
         "skip": 0
     })
 
     assert response.status_code == 200
-    assert response.json()[0]["name"] == "new-test-user1000"
+    assert response.json()[0]["name"] == test_name
 
 
 def test_ok():
@@ -89,10 +96,10 @@ def test_create_premierleague():
         {"name": "Brighton"},
         {"name": "Burnley"}
     ]
-    )
+                           )
     assert response.status_code == 200
     assert len(response.json()) == 6
 
 
-def test_drop_db():
-    models.Base.metadata.drop_all(bind=engine)
+# def test_drop_db():
+#     models.Base.metadata.drop_all(bind=engine)

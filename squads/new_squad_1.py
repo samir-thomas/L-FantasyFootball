@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from sql_app import schemas, crud
-from squads.squad_validators import allocation, starter_allocation
+from squads.squad_validators import full_squad_allocation, starter_allocation
 
 
 def assign_random_players_by_position(db: Session, position):
@@ -12,7 +12,7 @@ def assign_random_players_by_position(db: Session, position):
     players_in_position = [player for player in all_players if player.position == position]
     squad_player = []
     count = 0
-    while count < allocation[position]:
+    while count < full_squad_allocation[position]:
         new_player = random.choice(players_in_position)
         if new_player not in squad_player:
             squad_player.append(new_player.id)
@@ -129,10 +129,10 @@ def new_squad(goalkeeper, defence, midfield, forward, user_id):
         vice_captain=False
     )
 
-    if len(goalkeeper) > allocation["GKP"] \
-            or len(defence) > allocation["DEF"] \
-            or len(midfield) > allocation["MID"] \
-            or len(forward) > allocation["FWD"]:
+    if len(goalkeeper) > full_squad_allocation["GKP"] \
+            or len(defence) > full_squad_allocation["DEF"] \
+            or len(midfield) > full_squad_allocation["MID"] \
+            or len(forward) > full_squad_allocation["FWD"]:
         raise HTTPException(status_code=400,
                             detail=f"You have exceeded capacity for one of your positions, "
                                    f"you have {len(goalkeeper)}, {len(defence)}, {len(midfield)}")
@@ -179,3 +179,4 @@ def new_squad(goalkeeper, defence, midfield, forward, user_id):
                                 detail=f"You cannot assign captain and vice captain to the same player")
 
     return squad_schemas
+

@@ -17,7 +17,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
+    fake_hashed_password = user.password
     db_user = models.User(email=user.email,
                           hashed_password=fake_hashed_password,
                           name=user.name,
@@ -34,6 +34,13 @@ def get_players(db: Session, skip: int = 0, limit: int = 500):
 
 def get_player_by_name(db: Session, player_name: str):
     return db.query(models.Player).filter(models.Player.name == player_name).first()
+
+
+def get_players_by_position(db: Session, position: str):
+    # if position is None:
+    #     return db.query(models.Player)
+    players = db.query(models.Player).filter(models.Player.position == position.upper()).all
+    return players
 
 
 def get_player_by_id(db: Session, player_id: int):
@@ -65,8 +72,8 @@ def generate_random_players(db: Session, number_of_players):
 
 
 def get_club_by_name_and_league(db: Session, name: str, league: str):
-    return db.query(models.Club, models.League)\
-        .join(models.League)\
+    return db.query(models.Club, models.League) \
+        .join(models.League) \
         .filter(models.Club.name == name and models.League.name == league).first()
 
 
@@ -117,9 +124,47 @@ def add_player_to_squad_by_user(db: Session, squad: schemas.SquadCreate):
     return db_squad
 
 
-def get_players_by_position(db: Session, position):
-    return db.query(models.Player) \
-        .filter(models.Player.position == position).all()
+def set_player_in_fresh_squad_for_user(db: Session, user_id: int, player_id: int):
+    db_squad = models.Squad(user_id=user_id,
+                            player_id=player_id,
+                            starter=0,
+                            captain=0,
+                            vice_captain=0
+                            )
+    db.add(db_squad)
+    db.commit()
+    db.refresh(db_squad)
+    return db_squad
+
+
+def set_starter_state_for_squad(db: Session, user_id: int, player_id: int):
+    squad = get_squad_by_user_id(db=db, user_id=user_id)
+    for player in squad:
+        if player.player_id == player_id:
+            player.starter = 1
+            db.commit()
+            return True
+    return False
+
+
+def set_captain_state_for_player(db: Session, user_id: int, player_id: int, is_captain: bool = True):
+    squad = get_squad_by_user_id(db=db, user_id=user_id)
+    for player in squad:
+        if player.player_id == player_id:
+            player.captain = is_captain
+            db.commit()
+            return True
+    return False
+
+
+def set_vice_captain_state_for_player(db: Session, user_id: int, player_id: int, is_vice_captain: bool = True):
+    squad = get_squad_by_user_id(db=db, user_id=user_id)
+    for player in squad:
+        if player.player_id == player_id:
+            player.vice_captain = is_vice_captain
+            db.commit()
+            return True
+    return False
 
 
 def get_player_details_for_squad(db: Session, user_id):
@@ -127,4 +172,3 @@ def get_player_details_for_squad(db: Session, user_id):
         .join(models.Squad, models.Squad.player_id == models.Player.id) \
         .join(models.User, models.User.id == models.Squad.user_id) \
         .filter(models.Squad.user_id == user_id).all()
-

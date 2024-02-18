@@ -52,6 +52,19 @@ class SquadCreate(SquadBase):
     vice_captain: bool
 
 
+class SquadPlayerId(SquadBase):
+    player_id: int
+
+
+class SquadPlayerUser(BaseModel):
+    user_id: int
+    player_id: int
+    starter: bool
+    captain: bool
+    vice_captain: bool
+    position: str
+
+
 class Squad(SquadBase):
     id: int
     status: bool
@@ -62,7 +75,6 @@ class Squad(SquadBase):
 
 class Club(BaseModel):
     name: str
-
 
     class Config:
         orm_mode = True
@@ -82,4 +94,3 @@ class League(BaseModel):
 
     class Config:
         orm_mode = True
-
