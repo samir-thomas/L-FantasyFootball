@@ -156,6 +156,21 @@ def test_get_a_user_by_email(db_session, pre_populated_user):
             assert user["name"] == expect_response["name"]
 
 
+def test_create_new_user():
+    email = f"new-test-user{randint(1, 3000)}@email.com"
+    response = client.post("/api/create-user/", json={
+        "name": "test user 1",
+        "email": email,
+        "password": "bestpassword12345678",
+        "squad_name": "Banes on toast"
+    })
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "test user 1"
+    assert response.json()["email"] == email
+    assert response.json()["squad_name"] == "Banes on toast"
+
+
 def test_create_new_player():
     response = client.post("/api/create_player/", json={
         "name": "Roberto Inzaghi",
@@ -172,38 +187,28 @@ def test_create_new_player():
     assert response.json()["cost"] == 123
 
 
-# def test_add_player_to_a_squad(db_session, new_user, new_player):
-#     # Arrange
-#     test_user = db_session.query(models.User).filter(models.User.email == new_user.email).first()
-#     test_player = db_session.query(models.Player)\
-#         .filter(models.Player.name == new_player.name
-#                 and models.Player.position == new_player.position).first()
-#
-#     user_id = test_user.id
-#     player_id = test_player.id
-#
-#     # Act
-#     response = client.post("/api/squad/add_single_player/", json={
-#         "user_id": user_id,
-#         "player_id": player_id,
-#         "starter": True,
-#         "captain": True,
-#         "vice_captain": False
-#     })
-#
-#     # Assert
-#     assert response.status_code == 200
-#     assert response.json()["user_id"] == user_id
-#     assert response.json()["player_id"] == player_id
-#     assert response.json()["starter"] is True
-#     assert response.json()["vice_captain"] is False
-#     assert response.json()["captain"] is True
-
-
-def test_add_teams_to_league(set_premierleague, mock_league_teams):
-    response = client.post("/api/teams/league/create/", params={
-                "league_name": "premierleague"
-                }, json=mock_league_teams)
-
+def test_generate_random_players():
+    response = client.get("/api/players/create/3")
     assert response.status_code == 200
-    assert len(response.json()) == 6
+    assert len(response.json()) == 3
+
+
+def test_add_player_to_a_squad(db_session, new_user, new_player):
+    # Arrange
+    test_user = db_session.query(models.User).filter(models.User.email == new_user.email).first()
+    test_player = db_session.query(models.Player) \
+        .filter(models.Player.name == new_player.name
+                and models.Player.position == new_player.position).first()
+
+    user_id = test_user.id
+    player_id = test_player.id
+
+    # Act
+    response = client.post(f"api/squad/user/{user_id}/new", json=[{
+        "player_id": player_id,
+    }])
+
+    # Assert
+    assert response.status_code == 200
+    assert response.json()[0]["player_id"] == player_id
+    
