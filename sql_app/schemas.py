@@ -56,6 +56,11 @@ class SquadPlayerId(SquadBase):
     player_id: int
 
 
+class Subs(BaseModel):
+    player_in: int
+    player_out: int
+
+
 class SquadPlayerUser(BaseModel):
     user_id: int
     player_id: int

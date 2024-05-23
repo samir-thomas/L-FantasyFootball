@@ -49,7 +49,7 @@ def validate_starting_players_in_each_position(player_list, db: Session = Depend
         players_in_position = [player for player in player_list
                                if crud.get_player_by_id(db=db,
                                                         player_id=player.player_id).position == position]
-                               # and player.starter]
+        # and player.starter]
         if len(players_in_position) > starter_allocation[position]:
             raise HTTPException(status_code=400,
                                 detail=f"Only {starter_allocation[position]} {position} allowed for a single match")
@@ -61,6 +61,24 @@ def validate_position_allocation_for_squad(goalkeeper, defence, midfield, forwar
             or len(defence) > full_squad_allocation["DEF"] \
             or len(midfield) > full_squad_allocation["MID"] \
             or len(forward) > full_squad_allocation["FWD"]:
+        raise HTTPException(status_code=400,
+                            detail=f"You have exceeded capacity for one of your positions, "
+                                   f"you have {len(goalkeeper)} goalkeepers, "
+                                   f"{len(defence)} defenders, "
+                                   f"{len(midfield)} midfielders, "
+                                   f"{len(forward)} forwards ")
+    return True
+
+
+def validate_position_stater_allocation_for_squad(goalkeeper, defence, midfield, forward):
+    if len(goalkeeper) != starter_allocation["GKP"] \
+            or len(defence) > starter_allocation["DEF"] \
+            or len(midfield) > starter_allocation["MID"] \
+            or len(forward) > starter_allocation["FWD"] \
+            or len(defence) < 3 \
+            or len(midfield) == 0 \
+            or len(forward) == 0 \
+            or (len(goalkeeper) + len(defence) + len(midfield) + len(forward)) != 11:
         raise HTTPException(status_code=400,
                             detail=f"You have exceeded capacity for one of your positions, "
                                    f"you have {len(goalkeeper)} goalkeepers, "

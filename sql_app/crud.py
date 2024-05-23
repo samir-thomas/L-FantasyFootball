@@ -137,11 +137,11 @@ def set_player_in_fresh_squad_for_user(db: Session, user_id: int, player_id: int
     return db_squad
 
 
-def set_starter_state_for_squad(db: Session, user_id: int, player_id: int):
+def set_starter_state_for_squad(db: Session, user_id: int, player_id: int, is_starter: bool = True):
     squad = get_squad_by_user_id(db=db, user_id=user_id)
     for player in squad:
         if player.player_id == player_id:
-            player.starter = 1
+            player.starter = is_starter
             db.commit()
             return True
     return False

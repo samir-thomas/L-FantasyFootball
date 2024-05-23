@@ -1,18 +1,18 @@
+import json
 import typing
 
-import sqlalchemy.orm
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+
 # from data.data import premierleague_club_list, create_list_schema
 from sql_app import models
 from sql_app.crud import get_league_details
 from sql_app.database import engine
-from sql_app.models import Player
-from sql_app.schemas import SquadCreate
-from squads.squad_validators import *
+from sql_app.schemas import Subs
 from squads.new_squad_1 import new_squad, assign_random_players_by_position
+from squads.squad_validators import *
 
 app = FastAPI()
 
@@ -27,12 +27,21 @@ templates = Jinja2Templates(
 models.Base.metadata.create_all(bind=engine)
 
 
+class Tags:
+    users_tag = "Users"
+    players_tag = "Players"
+    squads_tag = "Squads"
+    league_tag = "League"
+    teams_tag = "Teams"
+    page_tag = "Page"
+
+
 @app.get("/new_horison/")
 async def read_main():
     return {"msg": "Hello World"}
 
 
-@app.post("/api/create-user/", response_model=schemas.User)
+@app.post("/api/create-user/", tags=[Tags.users_tag], response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
@@ -42,7 +51,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return something
 
 
-@app.post("/api/create_player/", response_model=schemas.Player)
+@app.post("/api/create_player/", tags=[Tags.players_tag], response_model=schemas.Player)
 def create_player(player: schemas.PlayerCreate, db: Session = Depends(get_db)):
     return crud.create_player(db=db, player=player)
 
@@ -58,7 +67,7 @@ def create_player(player: schemas.PlayerCreate, db: Session = Depends(get_db)):
 #     return db_squad
 
 
-@app.get("/api/get_users/", response_model=list[schemas.User])
+@app.get("/api/get_users/", tags=[Tags.users_tag], response_model=list[schemas.User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
@@ -74,7 +83,7 @@ async def homepage(request: Request, skip: int = 0, limit: int = 100, db: Sessio
     return templates.TemplateResponse('users.jinja2', context)
 
 
-@app.get("/welcome_page_v3/{user_id}", response_class=HTMLResponse)
+@app.get("/welcome_page_v3/{user_id}", tags=[Tags.page_tag], response_class=HTMLResponse)
 def welcome_page_v3(request: Request, user_id: int, db: Session = Depends(get_db)):
     context = {
         'request': request,
@@ -85,7 +94,7 @@ def welcome_page_v3(request: Request, user_id: int, db: Session = Depends(get_db
     return templates.TemplateResponse('welcomeV3.jinja2', context)
 
 
-@app.get("/api/squad/users/{user_id}", response_model=list[schemas.SquadPlayerUser])
+@app.get("/api/squad/users/{user_id}", tags=[Tags.squads_tag], response_model=list[schemas.SquadPlayerUser])
 def get_squad_details_for_user(user_id: int, db: Session = Depends(get_db)):
     player_schema_list = []
     squad_details = crud.get_player_details_for_squad(db=db, user_id=user_id)
@@ -101,7 +110,7 @@ def get_squad_details_for_user(user_id: int, db: Session = Depends(get_db)):
 
 
 # OLD implementation
-@app.post("/api/squads/create/{user_id}", response_model=list[schemas.SquadCreate])
+@app.post("/api/squads/create/old/{user_id}", tags=[Tags.squads_tag], response_model=list[schemas.SquadCreate])
 async def create_squad_for_user(user_id: int, db: Session = Depends(get_db)):
     # TODO: single function for validation
     # TODO: add persist after the validation checks pass
@@ -124,7 +133,7 @@ async def create_squad_for_user(user_id: int, db: Session = Depends(get_db)):
     return new_squad(GKP, DEF, MID, FWD, user_id=user_id)
 
 
-@app.post("/api/squad/new/{user_id}", response_model=list[schemas.SquadPlayerId])
+@app.post("/api/squad/user/{user_id}/new/", tags=[Tags.squads_tag], response_model=list[schemas.SquadPlayerId])
 def create_new_squad_for_user(user_id: int, player_ids: list[schemas.SquadPlayerId],
                               db: Session = Depends(get_db)):
     squad_players = []
@@ -151,7 +160,7 @@ def create_new_squad_for_user(user_id: int, player_ids: list[schemas.SquadPlayer
     return player_ids
 
 
-@app.post("/api/squad/starter/{user_id}", response_model=list[schemas.SquadCreate])
+@app.post("/api/squad/user/{user_id}/add_starters/", tags=[Tags.squads_tag], response_model=list[schemas.SquadCreate])
 def set_starters_in_squad_for_user(user_id: int, player_ids: list[schemas.SquadPlayerId],
                                    db: Session = Depends(get_db)):
     player_schema_list = []
@@ -177,7 +186,8 @@ def set_starters_in_squad_for_user(user_id: int, player_ids: list[schemas.SquadP
     return player_schema_list
 
 
-@app.post("/api/squad/set_captain/user/{user_id}/player_id/{player_id}", response_model=list[schemas.SquadCreate])
+@app.post("/api/squad/user/{user_id}/player_id/{player_id}/set_captain/", tags=[Tags.squads_tag],
+          response_model=list[schemas.SquadCreate])
 def set_team_captain(user_id: int, player_id: int, db: Session = Depends(get_db)):
     # Return 400 error if the player is not a starter
     squad_details = crud.get_player_details_for_squad(db=db, user_id=user_id)
@@ -206,7 +216,8 @@ def set_team_captain(user_id: int, player_id: int, db: Session = Depends(get_db)
     return my_squad_refreshed
 
 
-@app.post("/api/squad/set_vice_captain/user/{user_id}/player_id/{player_id}", response_model=list[schemas.SquadCreate])
+@app.post("/api/squad/user/{user_id}/player_id/{player_id}/set_vice_captain/", tags=[Tags.squads_tag],
+          response_model=list[schemas.SquadCreate])
 def set_team_captain(user_id: int, player_id: int, db: Session = Depends(get_db)):
     # Return 400 error if the player is not a starter
     squad_details = crud.get_player_details_for_squad(db=db, user_id=user_id)
@@ -239,13 +250,66 @@ def set_team_captain(user_id: int, player_id: int, db: Session = Depends(get_db)
     return my_squad_refreshed
 
 
-@app.get("/api/players/create/{number_of_players}", response_model=list[schemas.Player])
+@app.post("/api/squads/user/{user_id}/substitute_player", tags=[Tags.squads_tag])
+def bench_a_player_in_squad(user_id: int,
+                            subs: schemas.Subs,
+                            db: Session = Depends(get_db)):
+    # need outgoing player_id and incoming player_id
+    # Validate outgoing player is a starter and is part of the squad - done
+    # Validate incoming player is a not a starter and is part of the squad - done
+    # Validate starter allocation is met -> done
+    # if captain is substituted -> designate captain to vice captain
+    # designate vice captain to first available striker
+    squad_details = crud.get_player_details_for_squad(db=db, user_id=user_id)
+    provisional_squad_details = []
+    for player_details in squad_details:
+        if player_details[1].player_id == subs.player_out and not player_details[1].starter:
+            raise HTTPException(status_code=400,
+                                detail="Player coming off is not part of the starting 11")
+        if player_details[1].player_id == subs.player_in and player_details[1].starter:
+            raise HTTPException(status_code=400,
+                                detail="Player coming on already part of the stating 11")
+
+    for player_details in squad_details:
+        if player_details[1].player_id == subs.player_out:
+            player_details[1].starter = False
+
+        if player_details[1].player_id == subs.player_in:
+            player_details[1].starter = True
+
+        provisional_squad_details.append(player_details)
+
+    goalie = [current_player for current_player in provisional_squad_details
+              if current_player[0].position == "GKP" and current_player[1].starter]
+    defense = [current_player for current_player in provisional_squad_details
+               if current_player[0].position == "DEF" and current_player[1].starter]
+    midfield = [current_player for current_player in provisional_squad_details
+                if current_player[0].position == "MID" and current_player[1].starter]
+    fwd = [current_player for current_player in provisional_squad_details
+           if current_player[0].position == "FWD" and current_player[1].starter]
+
+    print("substitute_player: provisional ", len(goalie), len(defense), len(midfield), len(fwd))
+    validate_position_stater_allocation_for_squad(goalie, defense, midfield, fwd)
+
+    crud.set_starter_state_for_squad(db=db, user_id=user_id, player_id=subs.player_out, is_starter=False)
+
+    crud.set_starter_state_for_squad(db=db, user_id=user_id, player_id=subs.player_in, is_starter=True)
+    #
+    json_response = {"player_on": subs.player_in,
+                     "player_off": subs.player_out,
+                     "formation": f"{len(defense)} - {len(midfield)} - {len(fwd)}"}
+    # json_response = {"incoming_player": 1, "outgoing_player": 2}
+
+    return json_response
+
+
+@app.get("/api/players/create/{number_of_players}", tags=[Tags.players_tag], response_model=list[schemas.Player])
 async def api_create_random_players(db: Session = Depends(get_db), number_of_players: int | None = 1):
     players = crud.generate_random_players(db=db, number_of_players=number_of_players)
     return players
 
 
-@app.get("/players/load")
+@app.get("/players/load", tags=[Tags.page_tag])
 def get_players_db(request: Request, db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
     context = {
         'request': request,
@@ -254,7 +318,7 @@ def get_players_db(request: Request, db: Session = Depends(get_db), skip: int = 
     return templates.TemplateResponse('players_list_table.jinja2', context)
 
 
-@app.get("/players/position/{position}", response_model=list[schemas.Player])
+@app.get("/players/position/{position}", tags=[Tags.players_tag], response_model=list[schemas.Player])
 def get_players_db(db: Session = Depends(get_db), position: str | None = None):
     # context = {
     #     'request': request,
@@ -275,7 +339,7 @@ def get_players_db(db: Session = Depends(get_db), position: str | None = None):
     return players
 
 
-@app.post("/api/teams/league/create", response_model=list[schemas.ClubCreate])
+@app.post("/api/teams/league/create", tags=[Tags.teams_tag], response_model=list[schemas.ClubCreate])
 def create_premierleague_teams(clubs: list[schemas.ClubCreate], league_name: str, db: Session = Depends(get_db)):
     added_clubs = []
     # league_name = 'premierleague'
@@ -289,6 +353,6 @@ def create_premierleague_teams(clubs: list[schemas.ClubCreate], league_name: str
     return clubs
 
 
-@app.post("/api/league/create", response_model=schemas.League)
+@app.post("/api/league/create", tags=[Tags.league_tag], response_model=schemas.League)
 def create_league(league: schemas.League, db: Session = Depends(get_db)):
     return crud.add_league(db=db, league=league)
