@@ -211,4 +211,4 @@ def test_add_player_to_a_squad(db_session, new_user, new_player):
     # Assert
     assert response.status_code == 200
     assert response.json()[0]["player_id"] == player_id
-    
+
